@@ -1329,7 +1329,7 @@ class BorrowedBytesDeserializer private constructor(
 /**
  * A deserializer that iterates over a sequence.
  */
-class SeqDeserializer<T : IntoDeserializer>(
+class SeqDeserializer<T : IntoDeserializer> internal constructor(
     private val iter: Iterator<T>,
 ) : Deserializer,
     SeqAccess,
@@ -1551,7 +1551,7 @@ class SeqAccessDeserializer<A : SeqAccess>(
 /**
  * A deserializer that iterates over a map.
  */
-class MapDeserializer<K, V>(
+class MapDeserializer<K, V> internal constructor(
     private val iter: Iterator<Pair<K, V>>,
 ) : Deserializer,
     MapAccess,

@@ -7,7 +7,6 @@ import io.github.kotlinmania.serde.serdederive.src.internals.Ctxt
 import io.github.kotlinmania.serde.serdederive.src.internals.Derive
 import io.github.kotlinmania.serde.serdederive.src.internals.check.check
 import io.github.kotlinmania.syn.*
-import io.github.kotlinmania.syn.token.Comma
 import io.github.kotlinmania.serde.serdederive.src.internals.attr.Container as AttrContainer
 import io.github.kotlinmania.serde.serdederive.src.internals.attr.Default as AttrDefault
 import io.github.kotlinmania.serde.serdederive.src.internals.attr.Field as AttrField

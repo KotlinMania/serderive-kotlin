@@ -11,7 +11,7 @@ import io.github.kotlinmania.serde.core.de.Deserializer
  *
  * Wraps a mutable reference and calls `deserializeInPlace` on it.
  */
-class InPlaceSeed<T>(
+internal class InPlaceSeed<T>(
     var value: T,
 ) : DeserializeSeed<Unit> where T : Deserialize<T> {
     override fun <D> deserialize(deserializer: D): SerdeResult<Unit>

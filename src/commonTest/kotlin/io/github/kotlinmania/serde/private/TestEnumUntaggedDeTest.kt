@@ -71,7 +71,7 @@ public class TestEnumUntaggedDeTest {
     public fun enumMapDeserializesSingleKeyVariant() {
         val value =
             ContentDeserializer
-                .new(Content.Map(listOf(Content.String("Newtype") to Content.U32(5u))))
+                .new(Content.Map(listOf(Content.StringValue("Newtype") to Content.U32(5u))))
                 .deserializeEnum("E", listOf("Newtype", "Null"), EnumNewtypeVisitor)
                 .getOrThrow()
 

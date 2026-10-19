@@ -1,4 +1,4 @@
-// port-lint: source test_suite/tests/unstable/mod.rs
+// port-lint: tests test_suite/tests/test_unstable.rs
 package io.github.kotlinmania.serde.`private`.unstable
 
 import io.github.kotlinmania.serde.SerdeError
@@ -169,8 +169,7 @@ private class TokenStructVariant(
         where T : Serialize =
         serdeCatching {
             tokens += Token.Str(key)
-            value.serialize(TokenSerializer(tokens)).getOrThrow()
-            Unit
+            value.serialize(TokenSerializer(tokens)).getOrThrow().let { }
         }
 
     override fun end(): SerdeResult<List<Token>> =
@@ -180,7 +179,7 @@ private class TokenStructVariant(
         }
 }
 
-public class ModTest {
+public class RawIdentifiersTest {
     @Test
     public fun testRawIdentifiers() {
         val value = Type.TypeVariant(typeField = UnitValue)

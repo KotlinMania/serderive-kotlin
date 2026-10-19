@@ -16,12 +16,12 @@ import io.github.kotlinmania.serde.serdeCatching
  * Used to check that serde(getter) attributes return the expected type.
  * Not public API.
  */
-fun <T> constrain(t: T): T = t
+internal fun <T> constrain(t: T): T = t
 
 /**
  * Not public API.
  */
-fun <Ok, E, S, T> serializeTaggedNewtype(
+internal fun <Ok, E, S, T> serializeTaggedNewtype(
     serializer: S,
     typeIdent: String,
     variantIdent: String,
@@ -713,7 +713,7 @@ private class SerializeStructVariantAsMapValue<Ok, E, M>(
         }
 }
 
-class FlatMapSerializer<MOk, E, M>(
+internal class FlatMapSerializer<MOk, E, M>(
     private val map: M,
 ) : Serializer<Unit, E>
     where E : Error,
