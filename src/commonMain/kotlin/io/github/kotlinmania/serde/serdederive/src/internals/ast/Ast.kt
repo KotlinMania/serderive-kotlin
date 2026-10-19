@@ -7,7 +7,6 @@ import io.github.kotlinmania.serde.serdederive.src.internals.Ctxt
 import io.github.kotlinmania.serde.serdederive.src.internals.Derive
 import io.github.kotlinmania.serde.serdederive.src.internals.check.check
 import io.github.kotlinmania.syn.*
-import io.github.kotlinmania.syn.token.Comma
 import io.github.kotlinmania.serde.serdederive.src.internals.attr.Container as AttrContainer
 import io.github.kotlinmania.serde.serdederive.src.internals.attr.Default as AttrDefault
 import io.github.kotlinmania.serde.serdederive.src.internals.attr.Field as AttrField
@@ -178,12 +177,12 @@ enum class Style {
 
 private fun enumFromAst(
     cx: Ctxt,
-    variants: Punctuated<SynVariant, Comma>,
+    variants: VariantList,
     containerDefault: AttrDefault,
     private: Ident,
 ): List<Variant> {
     val parsedVariants =
-        variants.map { variant ->
+        variants.toList().map { variant ->
             val attrs = AttrVariant.fromAst(cx, variant)
             val (style, fields) =
                 structFromAst(
@@ -241,13 +240,13 @@ private fun structFromAst(
 
 private fun fieldsFromAst(
     cx: Ctxt,
-    fields: Punctuated<SynField, Comma>,
+    fields: FieldList,
     attrs: AttrVariant?,
     containerDefault: AttrDefault,
     private: Ident,
 ): List<Field> {
     val dstFields = mutableListOf<Field>()
-    for (field in fields) {
+    for (field in fields.toList()) {
         dstFields +=
             Field(
                 member =

@@ -15,7 +15,7 @@ import io.github.kotlinmania.serde.serdeCatching
 /**
  * If the missing field is of type `T?` then treat is as `null`, otherwise it is an error.
  */
-fun <V> missingField(
+internal fun <V> missingField(
     field: String,
     deserialize: Deserialize<V>,
 ): SerdeResult<V> {
@@ -105,7 +105,7 @@ fun <V> missingField(
     return deserialize.deserialize(MissingFieldDeserializer(field))
 }
 
-fun borrowCowStr(deserializer: Deserializer): SerdeResult<String> {
+internal fun borrowCowStr(deserializer: Deserializer): SerdeResult<String> {
     val cowStrVisitor =
         object : Visitor<String> {
             override fun expecting(): String = "a string"
@@ -132,7 +132,7 @@ fun borrowCowStr(deserializer: Deserializer): SerdeResult<String> {
     return deserializer.deserializeStr(cowStrVisitor)
 }
 
-fun borrowCowBytes(deserializer: Deserializer): SerdeResult<ByteArray> {
+internal fun borrowCowBytes(deserializer: Deserializer): SerdeResult<ByteArray> {
     val cowBytesVisitor =
         object : Visitor<ByteArray> {
             override fun expecting(): String = "a byte array"
@@ -164,10 +164,10 @@ fun borrowCowBytes(deserializer: Deserializer): SerdeResult<ByteArray> {
 // This issue is tracking making some of this stuff public:
 // https://github.com/serde-rs/serde/issues/741
 
-fun contentAsStr(content: Content): String? =
+internal fun contentAsStr(content: Content): String? =
     when (content) {
         is Content.Str -> content.value
-        is Content.String -> content.value
+        is Content.StringValue -> content.value
         is Content.Bytes ->
             serdeCatching { content.value.decodeToString(throwOnInvalidSequence = true) }.getOrNull()
 
@@ -191,7 +191,7 @@ private fun contentClone(content: Content): Content =
         is Content.F32 -> content
         is Content.F64 -> content
         is Content.Char -> content
-        is Content.String -> Content.String(content.value)
+        is Content.StringValue -> Content.StringValue(content.value)
         is Content.Str -> Content.Str(content.value)
         is Content.ByteBuf -> Content.ByteBuf(content.value.copyOf())
         is Content.Bytes -> Content.Bytes(content.value)
@@ -217,7 +217,7 @@ private fun contentUnexpected(content: Content): Unexpected =
         is Content.F32 -> Unexpected.FloatValue(content.value.toDouble())
         is Content.F64 -> Unexpected.FloatValue(content.value)
         is Content.Char -> Unexpected.CharValue(content.value)
-        is Content.String -> Unexpected.Str(content.value)
+        is Content.StringValue -> Unexpected.Str(content.value)
         is Content.Str -> Unexpected.Str(content.value)
         is Content.ByteBuf -> Unexpected.Bytes(content.value)
         is Content.Bytes -> Unexpected.Bytes(content.value)
@@ -228,7 +228,7 @@ private fun contentUnexpected(content: Content): Unexpected =
         is Content.Map -> Unexpected.Map
     }
 
-class ContentVisitor :
+internal class ContentVisitor :
     DeserializeSeed<Content>,
     Visitor<Content> {
     companion object {
@@ -264,11 +264,11 @@ class ContentVisitor :
 
     override fun visitChar(v: Char): SerdeResult<Content> = SerdeResult.success(Content.Char(v))
 
-    override fun visitStr(v: String): SerdeResult<Content> = SerdeResult.success(Content.String(v))
+    override fun visitStr(v: String): SerdeResult<Content> = SerdeResult.success(Content.StringValue(v))
 
     override fun visitBorrowedStr(v: String): SerdeResult<Content> = SerdeResult.success(Content.Str(v))
 
-    override fun visitString(v: String): SerdeResult<Content> = SerdeResult.success(Content.String(v))
+    override fun visitString(v: String): SerdeResult<Content> = SerdeResult.success(Content.StringValue(v))
 
     override fun visitBytes(v: ByteArray): SerdeResult<Content> = SerdeResult.success(Content.ByteBuf(v.copyOf()))
 
@@ -324,7 +324,7 @@ class ContentVisitor :
  *
  * Not public API.
  */
-sealed class TagOrContent {
+internal sealed class TagOrContent {
     data object Tag : TagOrContent()
 
     data class ContentValue(
@@ -336,7 +336,7 @@ sealed class TagOrContent {
  * Serves as a seed for deserializing a key of internally tagged enum.
  * Cannot capture externally tagged enums, `i128` and `u128`.
  */
-class TagOrContentVisitor(
+internal class TagOrContentVisitor(
     private val name: String,
 ) : DeserializeSeed<TagOrContent>,
     Visitor<TagOrContent> {
@@ -452,7 +452,7 @@ class TagOrContentVisitor(
  *
  * Not public API.
  */
-class TaggedContentVisitor<T>(
+internal class TaggedContentVisitor<T>(
     private val tagName: String,
     private val expecting: String,
     private val deserializeTag: Deserialize<T>,
@@ -531,7 +531,7 @@ class TaggedContentVisitor<T>(
  *
  * Not public API.
  */
-enum class TagOrContentField {
+internal enum class TagOrContentField {
     Tag,
     Content,
 }
@@ -539,7 +539,7 @@ enum class TagOrContentField {
 /**
  * Not public API.
  */
-class TagOrContentFieldVisitor(
+internal class TagOrContentFieldVisitor(
     /**
      * Name of the tag field of the adjacently tagged enum
      */
@@ -584,7 +584,7 @@ class TagOrContentFieldVisitor(
  *
  * Not public API.
  */
-enum class TagContentOtherField {
+internal enum class TagContentOtherField {
     Tag,
     Content,
     Other,
@@ -593,7 +593,7 @@ enum class TagContentOtherField {
 /**
  * Not public API.
  */
-class TagContentOtherFieldVisitor(
+internal class TagContentOtherFieldVisitor(
     /**
      * Name of the tag field of the adjacently tagged enum
      */
@@ -629,7 +629,7 @@ class TagContentOtherFieldVisitor(
 
 // //////////////////////////////////////////////////////////////////////////////
 
-class ContentDeserializer(
+internal class ContentDeserializer(
     private val content: Content,
 ) : Deserializer {
     companion object {
@@ -681,7 +681,7 @@ class ContentDeserializer(
             is Content.F32 -> visitor.visitF32(content.value)
             is Content.F64 -> visitor.visitF64(content.value)
             is Content.Char -> visitor.visitChar(content.value)
-            is Content.String -> visitor.visitString(content.value)
+            is Content.StringValue -> visitor.visitString(content.value)
             is Content.Str -> visitor.visitBorrowedStr(content.value)
             is Content.ByteBuf -> visitor.visitByteBuf(content.value)
             is Content.Bytes -> visitor.visitBorrowedBytes(content.value)
@@ -722,7 +722,7 @@ class ContentDeserializer(
     override fun <V> deserializeChar(visitor: Visitor<V>): SerdeResult<V> =
         when (content) {
             is Content.Char -> visitor.visitChar(content.value)
-            is Content.String -> visitor.visitString(content.value)
+            is Content.StringValue -> visitor.visitString(content.value)
             is Content.Str -> visitor.visitBorrowedStr(content.value)
             else -> SerdeResult.failure(invalidType(visitor))
         }
@@ -731,7 +731,7 @@ class ContentDeserializer(
 
     override fun <V> deserializeString(visitor: Visitor<V>): SerdeResult<V> =
         when (content) {
-            is Content.String -> visitor.visitString(content.value)
+            is Content.StringValue -> visitor.visitString(content.value)
             is Content.Str -> visitor.visitBorrowedStr(content.value)
             is Content.ByteBuf -> visitor.visitByteBuf(content.value)
             is Content.Bytes -> visitor.visitBorrowedBytes(content.value)
@@ -742,7 +742,7 @@ class ContentDeserializer(
 
     override fun <V> deserializeByteBuf(visitor: Visitor<V>): SerdeResult<V> =
         when (content) {
-            is Content.String -> visitor.visitString(content.value)
+            is Content.StringValue -> visitor.visitString(content.value)
             is Content.Str -> visitor.visitBorrowedStr(content.value)
             is Content.ByteBuf -> visitor.visitByteBuf(content.value)
             is Content.Bytes -> visitor.visitBorrowedBytes(content.value)
@@ -878,7 +878,7 @@ class ContentDeserializer(
                         first.first to first.second
                     }
 
-                    is Content.String -> content to null
+                    is Content.StringValue -> content to null
                     is Content.Str -> content to null
                     else -> throw SerdeException(
                         Error.invalidType(
@@ -895,7 +895,7 @@ class ContentDeserializer(
 
     override fun <V> deserializeIdentifier(visitor: Visitor<V>): SerdeResult<V> =
         when (content) {
-            is Content.String -> visitor.visitString(content.value)
+            is Content.StringValue -> visitor.visitString(content.value)
             is Content.Str -> visitor.visitBorrowedStr(content.value)
             is Content.ByteBuf -> visitor.visitByteBuf(content.value)
             is Content.Bytes -> visitor.visitBorrowedBytes(content.value)
@@ -946,9 +946,7 @@ private class SeqDeserializer(
     fun end(): SerdeResult<Unit> =
         serdeCatching {
             val remaining = if (iter.hasNext()) iter.asSequence().count() else 0
-            if (remaining == 0) {
-                Unit
-            } else {
+            if (remaining != 0) {
                 // First argument is the number of elements in the data, second argument is the
                 // number of elements expected by the deserializer.
                 throw SerdeException(Error.invalidLength(count + remaining, ExpectedInSeq(count)))
@@ -1084,9 +1082,7 @@ private class MapDeserializer(
     fun end(): SerdeResult<Unit> =
         serdeCatching {
             val remaining = if (iter.hasNext()) iter.asSequence().count() else 0
-            if (remaining == 0) {
-                Unit
-            } else {
+            if (remaining != 0) {
                 // First argument is the number of elements in the data, second argument is the
                 // number of elements expected by the deserializer.
                 throw SerdeException(Error.invalidLength(count + remaining, ExpectedInMap(count)))
@@ -1389,7 +1385,7 @@ private class ExpectedInMap(
         }
 }
 
-class EnumDeserializer private constructor(
+internal class EnumDeserializer private constructor(
     private val variant: Content,
     private val value: Content?,
 ) : EnumAccess {
@@ -1410,7 +1406,7 @@ private class VariantDeserializer(
     override fun unitVariant(): SerdeResult<Unit> =
         when (val v = value) {
             null -> SerdeResult.success(Unit)
-            else -> IgnoredAny.deserialize(ContentDeserializer.new(v)).map { Unit }
+            else -> IgnoredAny.deserialize(ContentDeserializer.new(v)).map { }
         }
 
     override fun <T> newtypeVariantSeed(seed: DeserializeSeed<T>): SerdeResult<T> =
@@ -1491,45 +1487,45 @@ private class VariantDeserializer(
 //    enum class F { A, B, Other(String) }
 //
 // The fallback case is deserialized using `IdentifierDeserializer`.
-interface IdentifierDeserializer {
+internal interface IdentifierDeserializer {
     fun intoIdentifierDeserializer(): Deserializer
 }
 
-class Borrowed<T>(
+internal class Borrowed<T>(
     val value: T,
 )
 
-class U64IdentifierDeserializer(
+internal class U64IdentifierDeserializer(
     private val value: ULong,
 ) : IdentifierDeserializer {
     override fun intoIdentifierDeserializer(): Deserializer = value.intoDeserializer()
 }
 
-class StrIdentifierDeserializer(
+internal class StrIdentifierDeserializer(
     private val value: String,
 ) : IdentifierDeserializer {
     override fun intoIdentifierDeserializer(): Deserializer = StrDeserializer(value)
 }
 
-class BorrowedStrIdentifierDeserializer(
+internal class BorrowedStrIdentifierDeserializer(
     private val value: String,
 ) : IdentifierDeserializer {
     override fun intoIdentifierDeserializer(): Deserializer = BorrowedStrDeserializer(value)
 }
 
-class BytesIdentifierDeserializer(
+internal class BytesIdentifierDeserializer(
     private val value: ByteArray,
 ) : IdentifierDeserializer {
     override fun intoIdentifierDeserializer(): Deserializer = BytesDeserializer.new(value)
 }
 
-class BorrowedBytesIdentifierDeserializer(
+internal class BorrowedBytesIdentifierDeserializer(
     private val value: ByteArray,
 ) : IdentifierDeserializer {
     override fun intoIdentifierDeserializer(): Deserializer = BorrowedBytesDeserializer.new(value)
 }
 
-class StrDeserializer(
+internal class StrDeserializer(
     private val value: String,
 ) : Deserializer {
     override fun <V> deserializeAny(visitor: Visitor<V>): SerdeResult<V> = visitor.visitStr(value)
@@ -1612,7 +1608,7 @@ class StrDeserializer(
     override fun <V> deserializeIgnoredAny(visitor: Visitor<V>): SerdeResult<V> = deserializeAny(visitor)
 }
 
-class BorrowedStrDeserializer(
+internal class BorrowedStrDeserializer(
     private val value: String,
 ) : Deserializer {
     override fun <V> deserializeAny(visitor: Visitor<V>): SerdeResult<V> = visitor.visitBorrowedStr(value)
@@ -1695,7 +1691,7 @@ class BorrowedStrDeserializer(
     override fun <V> deserializeIgnoredAny(visitor: Visitor<V>): SerdeResult<V> = deserializeAny(visitor)
 }
 
-class BorrowedBytesDeserializer private constructor(
+internal class BorrowedBytesDeserializer private constructor(
     private val value: ByteArray,
 ) : Deserializer {
     companion object {
@@ -1784,7 +1780,7 @@ class BorrowedBytesDeserializer private constructor(
 
 // //////////////////////////////////////////////////////////////////////////////
 
-class FlatMapDeserializer(
+internal class FlatMapDeserializer(
     val entries: MutableList<Pair<Content, Content>?>,
 ) : Deserializer {
     private fun <V> deserializeOther(): SerdeResult<V> = SerdeResult.failure(Error.custom("can only flatten structs and maps"))
@@ -1979,7 +1975,7 @@ private fun flatMapTakeEntry(
     return if (isRecognized) entry else null
 }
 
-class AdjacentlyTaggedEnumVariantSeed<F>(
+internal class AdjacentlyTaggedEnumVariantSeed<F>(
     val enumName: String,
     val variants: List<String>,
     private val deserializeFieldsEnum: Deserialize<F>,
@@ -1997,7 +1993,7 @@ class AdjacentlyTaggedEnumVariantSeed<F>(
         )
 }
 
-class AdjacentlyTaggedEnumVariantVisitor<F>(
+internal class AdjacentlyTaggedEnumVariantVisitor<F>(
     private val enumName: String,
     private val deserializeFieldsEnum: Deserialize<F>,
 ) : Visitor<F>
@@ -2025,7 +2021,7 @@ class AdjacentlyTaggedEnumVariantVisitor<F>(
 
 // //////////////////////////////////////////////////////////////////////////////
 
-class ContentRefDeserializer(
+internal class ContentRefDeserializer(
     private val content: Content,
 ) : Deserializer {
     companion object {
@@ -2077,7 +2073,7 @@ class ContentRefDeserializer(
             is Content.F32 -> visitor.visitF32(content.value)
             is Content.F64 -> visitor.visitF64(content.value)
             is Content.Char -> visitor.visitChar(content.value)
-            is Content.String -> visitor.visitStr(content.value)
+            is Content.StringValue -> visitor.visitStr(content.value)
             is Content.Str -> visitor.visitBorrowedStr(content.value)
             is Content.ByteBuf -> visitor.visitBytes(content.value)
             is Content.Bytes -> visitor.visitBorrowedBytes(content.value)
@@ -2118,14 +2114,14 @@ class ContentRefDeserializer(
     override fun <V> deserializeChar(visitor: Visitor<V>): SerdeResult<V> =
         when (content) {
             is Content.Char -> visitor.visitChar(content.value)
-            is Content.String -> visitor.visitStr(content.value)
+            is Content.StringValue -> visitor.visitStr(content.value)
             is Content.Str -> visitor.visitBorrowedStr(content.value)
             else -> SerdeResult.failure(invalidType(visitor))
         }
 
     override fun <V> deserializeStr(visitor: Visitor<V>): SerdeResult<V> =
         when (content) {
-            is Content.String -> visitor.visitStr(content.value)
+            is Content.StringValue -> visitor.visitStr(content.value)
             is Content.Str -> visitor.visitBorrowedStr(content.value)
             is Content.ByteBuf -> visitor.visitBytes(content.value)
             is Content.Bytes -> visitor.visitBorrowedBytes(content.value)
@@ -2136,7 +2132,7 @@ class ContentRefDeserializer(
 
     override fun <V> deserializeBytes(visitor: Visitor<V>): SerdeResult<V> =
         when (content) {
-            is Content.String -> visitor.visitStr(content.value)
+            is Content.StringValue -> visitor.visitStr(content.value)
             is Content.Str -> visitor.visitBorrowedStr(content.value)
             is Content.ByteBuf -> visitor.visitBytes(content.value)
             is Content.Bytes -> visitor.visitBorrowedBytes(content.value)
@@ -2242,7 +2238,7 @@ class ContentRefDeserializer(
                         first.first to first.second
                     }
 
-                    is Content.String -> content to null
+                    is Content.StringValue -> content to null
                     is Content.Str -> content to null
                     else -> throw SerdeException(
                         Error.invalidType(
@@ -2259,7 +2255,7 @@ class ContentRefDeserializer(
 
     override fun <V> deserializeIdentifier(visitor: Visitor<V>): SerdeResult<V> =
         when (content) {
-            is Content.String -> visitor.visitStr(content.value)
+            is Content.StringValue -> visitor.visitStr(content.value)
             is Content.Str -> visitor.visitBorrowedStr(content.value)
             is Content.ByteBuf -> visitor.visitBytes(content.value)
             is Content.Bytes -> visitor.visitBorrowedBytes(content.value)
@@ -2310,9 +2306,7 @@ private class SeqRefDeserializer(
     fun end(): SerdeResult<Unit> =
         serdeCatching {
             val remaining = if (iter.hasNext()) iter.asSequence().count() else 0
-            if (remaining == 0) {
-                Unit
-            } else {
+            if (remaining != 0) {
                 // First argument is the number of elements in the data, second argument is the
                 // number of elements expected by the deserializer.
                 throw SerdeException(Error.invalidLength(count + remaining, ExpectedInSeq(count)))
@@ -2437,9 +2431,7 @@ private class MapRefDeserializer(
     fun end(): SerdeResult<Unit> =
         serdeCatching {
             val remaining = if (iter.hasNext()) iter.asSequence().count() else 0
-            if (remaining == 0) {
-                Unit
-            } else {
+            if (remaining != 0) {
                 // First argument is the number of elements in the data, second argument is the
                 // number of elements expected by the deserializer.
                 throw SerdeException(Error.invalidLength(count + remaining, ExpectedInMap(count)))
@@ -2745,7 +2737,7 @@ private class VariantRefDeserializer(
     override fun unitVariant(): SerdeResult<Unit> =
         when (val v = value) {
             null -> SerdeResult.success(Unit)
-            else -> IgnoredAny.deserialize(ContentRefDeserializer.new(v)).map { Unit }
+            else -> IgnoredAny.deserialize(ContentRefDeserializer.new(v)).map { }
         }
 
     override fun <T> newtypeVariantSeed(seed: DeserializeSeed<T>): SerdeResult<T> =

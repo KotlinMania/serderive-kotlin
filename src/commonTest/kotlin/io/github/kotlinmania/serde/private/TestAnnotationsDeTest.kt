@@ -16,7 +16,7 @@ public class TestAnnotationsDeTest {
     public fun flatMapDeserializerFindsVariantInFlattenedData() {
         val value =
             FlatMapDeserializer(
-                mutableListOf(Content.String("B") to Content.Bool(true)),
+                mutableListOf(Content.StringValue("B") to Content.Bool(true)),
             ).deserializeEnum("E", listOf("B"), FlatBoolEnumVisitor)
                 .getOrThrow()
 

@@ -30,8 +30,8 @@ package io.github.kotlinmania.serde.core
  * ```
  */
 internal interface Error :
-    Lib.Debug,
-    Lib.Display {
+    Debug,
+    Display {
     /**
      * The underlying cause of this error, if any.
      */

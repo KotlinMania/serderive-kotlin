@@ -1,9 +1,9 @@
 // port-lint: source serde_derive/src/internals/symbol.rs
 package io.github.kotlinmania.serde.serdederive.src.internals
 
+import io.github.kotlinmania.procmacro2.Ident
 import io.github.kotlinmania.serde.SerdeResult
 import io.github.kotlinmania.serde.serdeCatching
-import io.github.kotlinmania.syn.Ident
 import io.github.kotlinmania.syn.Path
 
 class Symbol(
@@ -12,7 +12,6 @@ class Symbol(
     fun fmt(formatter: Appendable): SerdeResult<Unit> =
         serdeCatching {
             formatter.append(value)
-            Unit
         }
 
     override fun toString(): String = value

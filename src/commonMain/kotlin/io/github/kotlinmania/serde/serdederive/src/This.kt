@@ -11,7 +11,7 @@ fun thisType(cont: Container): Path {
     val remote = cont.attrs.remote()
     return if (remote != null) {
         val thisPath = remote.deepCopy()
-        for (segment in thisPath.segments) {
+        for (segment in thisPath.segments.toList()) {
             val arguments = segment.arguments
             if (arguments is PathArguments.AngleBracketed) {
                 arguments.colon2Token = null
@@ -27,7 +27,7 @@ fun thisValue(cont: Container): Path {
     val remote = cont.attrs.remote()
     return if (remote != null) {
         val thisPath = remote.deepCopy()
-        for (segment in thisPath.segments) {
+        for (segment in thisPath.segments.toList()) {
             val arguments = segment.arguments
             if (arguments is PathArguments.AngleBracketed && arguments.colon2Token == null) {
                 arguments.colon2Token = PathSep.from(arguments.ltToken.span)

@@ -3,7 +3,8 @@ package io.github.kotlinmania.serde.core.`private`
 
 import io.github.kotlinmania.serde.SerdeError
 import io.github.kotlinmania.serde.SerdeResult
-import io.github.kotlinmania.serde.core.Lib
+import io.github.kotlinmania.serde.core.Debug
+import io.github.kotlinmania.serde.core.Display
 import io.github.kotlinmania.serde.core.ser.*
 import io.github.kotlinmania.serde.serdeCatching
 import io.github.kotlinmania.serde.core.ser.Error as SerError
@@ -13,12 +14,12 @@ import io.github.kotlinmania.serde.core.ser.Error as SerError
 /**
  * Error type used by Serde documentation tests.
  */
-class Error(
+internal class Error(
     message: String = "serde documentation test serializer was invoked",
 ) : RuntimeException(message),
     SerError,
-    Lib.Debug,
-    Lib.Display {
+    Debug,
+    Display {
     companion object {
         fun custom(msg: String): Error = Error()
     }
@@ -28,14 +29,13 @@ class Error(
     fun fmt(formatter: Appendable): SerdeResult<Unit> =
         serdeCatching {
             formatter.append(toString())
-            Unit
         }
 }
 
 /**
  * Private serialization interface used only inside documentation tests.
  */
-interface PrivateSerialize {
+internal interface PrivateSerialize {
     fun <Ok, E> serialize(serializer: Serializer<Ok, E>): SerdeResult<Ok>
         where E : SerError
 }
@@ -43,7 +43,7 @@ interface PrivateSerialize {
 /**
  * Serializer method set used only inside documentation tests.
  */
-interface SerializeDocTestSerializer<Ok, E> : Serializer<Ok, E>
+internal interface SerializeDocTestSerializer<Ok, E> : Serializer<Ok, E>
     where E : SerError {
     override fun serializeBool(v: Boolean): SerdeResult<Ok> = documentationTestError("serializeBool", v)
 

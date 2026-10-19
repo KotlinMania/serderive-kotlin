@@ -7,7 +7,7 @@ package io.github.kotlinmania.serde.core.`private`
 // Not public API. Use serde-value instead.
 //
 // Obsoleted by format-specific buffer types (https://github.com/serde-rs/serde/pull/2912).
-sealed class Content {
+internal sealed class Content {
     data class Bool(
         val value: Boolean,
     ) : Content()
@@ -56,7 +56,7 @@ sealed class Content {
         val value: kotlin.Char,
     ) : Content()
 
-    data class String(
+    data class StringValue(
         val value: kotlin.String,
     ) : Content()
 

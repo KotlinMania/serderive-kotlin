@@ -1329,7 +1329,7 @@ class BorrowedBytesDeserializer private constructor(
 /**
  * A deserializer that iterates over a sequence.
  */
-class SeqDeserializer<T : IntoDeserializer>(
+class SeqDeserializer<T : IntoDeserializer> internal constructor(
     private val iter: Iterator<T>,
 ) : Deserializer,
     SeqAccess,
@@ -1346,9 +1346,7 @@ class SeqDeserializer<T : IntoDeserializer>(
     fun end(): SerdeResult<Unit> =
         serdeCatching {
             val remaining = iter.asSequence().count()
-            if (remaining == 0) {
-                Unit
-            } else {
+            if (remaining != 0) {
                 throw SerdeException(DeError.invalidLength(count + remaining, ExpectedInSeq(count)))
             }
         }
@@ -1553,7 +1551,7 @@ class SeqAccessDeserializer<A : SeqAccess>(
 /**
  * A deserializer that iterates over a map.
  */
-class MapDeserializer<K, V>(
+class MapDeserializer<K, V> internal constructor(
     private val iter: Iterator<Pair<K, V>>,
 ) : Deserializer,
     MapAccess,
@@ -1618,9 +1616,7 @@ class MapDeserializer<K, V>(
     fun end(): SerdeResult<Unit> =
         serdeCatching {
             val remaining = iter.asSequence().count()
-            if (remaining == 0) {
-                Unit
-            } else {
+            if (remaining != 0) {
                 throw SerdeException(DeError.invalidLength(count + remaining, ExpectedInMap(count)))
             }
         }

@@ -175,7 +175,7 @@ private fun turbofish(generics: Generics): String {
 }
 
 private fun genericParamNames(generics: Generics): List<String> =
-    generics.params.mapNotNull { param ->
+    generics.params.toList().mapNotNull { param ->
         when (param) {
             is GenericParam.ConstParam -> param.ident.toString()
             is GenericParam.LifetimeParam -> null

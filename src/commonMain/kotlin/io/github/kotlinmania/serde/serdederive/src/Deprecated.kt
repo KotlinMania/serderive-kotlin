@@ -24,7 +24,7 @@ private fun shouldAllowDeprecated(input: DeriveInput): Boolean {
     }
     val data = input.data
     if (data is Data.Enum) {
-        for (variant in data.variants) {
+        for (variant in data.variants.toList()) {
             if (containsDeprecated(variant.attrs)) {
                 return true
             }
