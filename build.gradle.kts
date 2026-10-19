@@ -278,23 +278,16 @@ kotlin {
     iosSimulatorArm64 { addToXcf(static = true) }
     tvosArm64 { addToXcf() }
     tvosSimulatorArm64 { addToXcf() }
-    watchosArm64 { addToXcf() }
     watchosDeviceArm64 { addToXcf() }
     watchosSimulatorArm64 { addToXcf() }
-
-    // iosX64: Intel Mac simulator. Tier 3 in Kotlin/Native but NOT deprecated —
-    // Apple still ships x86_64 iOS simulator runtimes, so it is always built.
-    iosX64 { addToXcf(static = true) }
 
     // Other native — Tier 1/2
     linuxX64()
     linuxArm64()
     mingwX64()
 
-    // Android NDK — always built (full target surface, no opt-in gate).
-    androidNativeArm32()
+    // Android NDK — 64-bit only (32-bit retired §5.5.3, 2026-06-25).
     androidNativeArm64()
-    androidNativeX86()
     androidNativeX64()
 
     // Web
@@ -618,27 +611,23 @@ tasks.register("swiftExportSmokeTest") {
 // `build` aggregate
 // ----------------------------------------------------------------------------
 // Every configured native target, unconditionally. This is the audit contract —
-// it must mirror the kotlin { } target block exactly. watchosArm32 is the only
-// retired native target (see §5.5.1); everything else MUST build.
+// it must mirror the kotlin { } target block exactly. All native 32-bit and
+// Apple-specific x64 targets are retired; every retained target MUST build.
 // Do not add a dynamic tasks.matching fallback here: copied templates must make
 // the target surface explicit so missing declarations fail loudly in review.
 // ============================================================================
 val nativeTargetNames =
     listOf(
-        "androidNativeArm32",
         "androidNativeArm64",
         "androidNativeX64",
-        "androidNativeX86",
         "iosArm64",
         "iosSimulatorArm64",
-        "iosX64",
         "linuxArm64",
         "linuxX64",
         "macosArm64",
         "mingwX64",
         "tvosArm64",
         "tvosSimulatorArm64",
-        "watchosArm64",
         "watchosDeviceArm64",
         "watchosSimulatorArm64",
     )

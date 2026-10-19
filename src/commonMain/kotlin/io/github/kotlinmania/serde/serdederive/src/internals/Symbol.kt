@@ -12,7 +12,6 @@ class Symbol(
     fun fmt(formatter: Appendable): SerdeResult<Unit> =
         serdeCatching {
             formatter.append(value)
-            Unit
         }
 
     override fun toString(): String = value

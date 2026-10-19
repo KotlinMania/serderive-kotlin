@@ -176,7 +176,6 @@ class ParseError(
     fun fmt(formatter: Appendable): SerdeResult<Unit> =
         serdeCatching {
             formatter.append(message)
-            Unit
         }
 
     override fun toString(): String = message

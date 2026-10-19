@@ -178,12 +178,12 @@ enum class Style {
 
 private fun enumFromAst(
     cx: Ctxt,
-    variants: Punctuated<SynVariant, Comma>,
+    variants: VariantList,
     containerDefault: AttrDefault,
     private: Ident,
 ): List<Variant> {
     val parsedVariants =
-        variants.map { variant ->
+        variants.toList().map { variant ->
             val attrs = AttrVariant.fromAst(cx, variant)
             val (style, fields) =
                 structFromAst(
@@ -241,13 +241,13 @@ private fun structFromAst(
 
 private fun fieldsFromAst(
     cx: Ctxt,
-    fields: Punctuated<SynField, Comma>,
+    fields: FieldList,
     attrs: AttrVariant?,
     containerDefault: AttrDefault,
     private: Ident,
 ): List<Field> {
     val dstFields = mutableListOf<Field>()
-    for (field in fields) {
+    for (field in fields.toList()) {
         dstFields +=
             Field(
                 member =

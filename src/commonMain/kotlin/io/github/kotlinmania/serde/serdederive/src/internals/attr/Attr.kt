@@ -496,7 +496,7 @@ private fun decideTag(
             val tag = internalTagValue.second
             val data = item.data
             if (data is SynData.Enum) {
-                for (variant in data.variants) {
+                for (variant in data.variants.toList()) {
                     val fields = variant.fields
                     if (fields is SynFields.Unnamed && fields.fields.unnamed.len() != 1) {
                         cx.errorSpannedBy(variant, "#[serde(tag = \"...\")] cannot be used with tuple variants")
@@ -1106,7 +1106,7 @@ private fun parsePath(value: String): Path {
     val cleaned = value.substringBefore('<').trim()
     val segments = cleaned.split("::").filter { it.isNotBlank() }
     val span = Span.callSite()
-    val path = Path(null, Punctuated.new())
+    val path = Path(null, PathSegmentList())
     for (segment in segments.ifEmpty { listOf(cleaned.ifBlank { "_" }) }) {
         path.segments.push(PathSegment.from(Ident.new(segment.removePrefix("r#"), span))) { PathSep.from(span) }
     }
@@ -1118,7 +1118,7 @@ private fun parsePath(value: String): Path {
                 ltToken =
                     io.github.kotlinmania.syn.token.Lt
                         .from(span),
-                args = Punctuated.new(),
+                args = GenericArgumentList(),
                 gtToken =
                     io.github.kotlinmania.syn.token.Gt
                         .from(span),
@@ -1160,7 +1160,7 @@ private fun borrowCowPath(
 
 private fun pathFromSegments(segments: List<String>): Path {
     val span = Span.callSite()
-    val path = Path(null, Punctuated.new())
+    val path = Path(null, PathSegmentList())
     for (segment in segments) {
         path.segments.push(PathSegment.from(Ident.new(segment, span))) { PathSep.from(span) }
     }
@@ -1252,16 +1252,16 @@ private fun collectLifetimes(
         }
 
         is SynType.Tuple -> {
-            for (elem in type.elems) {
+            for (elem in type.elems.toList()) {
                 collectLifetimes(elem, out)
             }
         }
 
         is SynType.Path -> {
             type.qself?.let { collectLifetimes(it.ty, out) }
-            for (seg in type.path.segments) {
+            for (seg in type.path.segments.toList()) {
                 val bracketed = seg.arguments as? PathArguments.AngleBracketed ?: continue
-                for (arg in bracketed.args) {
+                for (arg in bracketed.args.toList()) {
                     when (arg) {
                         is GenericArgument.LifetimeArg -> out.add(arg.lifetime)
                         is GenericArgument.TypeArg -> collectLifetimes(arg.type, out)
@@ -1314,10 +1314,10 @@ private fun tokensFrom(obj: Any): TokenStream =
         is TokenStream -> obj
         is TokenTree -> TokenStream.fromTokenTree(obj)
         is ToTokens -> obj.intoTokenStream()
-        is Path -> TokenStream.fromString(obj.toString()).getOrDefault(TokenStream.new())
+        is Path -> TokenStream.fromString(obj.toString()).value ?: TokenStream.new()
         is Expr -> tokensFrom(obj.toString())
         is Attribute -> tokensFrom(obj.meta.path())
-        else -> TokenStream.fromString(obj.toString()).getOrDefault(TokenStream.new())
+        else -> TokenStream.fromString(obj.toString()).value ?: TokenStream.new()
     }
 
 private fun Attribute.tokenText(): String =
